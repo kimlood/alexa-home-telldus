@@ -93,11 +93,9 @@ public class Telldus{
                         "turnOff"
                     ],
                     "additionalApplianceDetails":[
-						 "extraDetail1":"optionalDetailForSkillAdapterToReferenceThisDevice",
-                        "extraDetail2":"There can be multiple entries",
-                        "extraDetail3":"but they should only be used for reference purposes.",
-                        "extraDetail4":"This is not a suitable place to maintain current device state"
-					]])	
+						 "extraDetail1":"optionalDetailForSkillAdapterToReferenceThisDevice"
+						]
+					])	
 			
 				
 		} 
