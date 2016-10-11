@@ -7,11 +7,8 @@ import org.scribe.oauth.*
 import groovy.json.JsonSlurper
 import groovy.json.*
 
-//Change this to own 
-
 public class Telldus{
-	
-	
+		
 	public static void main(String[] args) {
 		def telldus = new Telldus()
 		telldus.handler([header:[messageId:'6d6d6e14-8aee-473e-8c24-0d31ff9c17a2', name:'TurnOnRequest', namespace:'Alexa.ConnectedHome.Control', payloadVersion:'2'], payload:[accessToken:'Atza|5A', appliance:[applianceId:1068213, additionalApplianceDetails:[extraDetail3:'but they should only be used for reference purposes.', extraDetail4:'This is not a suitable place to maintain current device state', extraDetail1:'optionalDetailForSkillAdapterToReferenceThisDevice, extraDetail2:There can be multiple entries']]]], null)
@@ -26,15 +23,36 @@ public class Telldus{
 			println "INFO: Alexa.ConnectedHome.Control"
 			def deviceId = event.payload.appliance.applianceId
 			def messageId = event.header.messageId
+			def headerName = event.header.name
 			
-			if (event.header.name == 'TurnOnRequest'){
-				println "INFO: Handle TurnOnRequest"
-				return doRequest(deviceId, "turnOn", messageId, "TurnOnConfirmation")
-			
-			} else if (event.header.name== 'TurnOffRequest') {
-				println "INFO: Handle TurnOffRequest"
-				return doRequest(deviceId, "turnOff", messageId, "TurnOffConfirmation")
-			}
+				switch(headerName){
+                    case "TurnOnRequest": 
+                        println "INFO: Handle TurnOnRequest" 
+						return doRequest(deviceId, "turnOn", messageId, "TurnOnConfirmation", null, null)
+                        break 
+                    case "TurnOffRequest": 
+                        println "INFO: Handle TurnOffRequest"
+                        return doRequest(deviceId, "turnOff", messageId, "TurnOffConfirmation", null, null)
+						break
+                    case "HealthCheckRequest": 
+                        println "INFO: Handle HealthCheckRequest"
+						return doHealthCheckRequest()
+                        break 
+                    case "SetPercentageRequest":
+						def percentageState = event.payload.percentageState.value
+                        println "INFO: Handle SetPercentageRequest"
+						return doRequest(deviceId, "dim", messageId, "SetPercentageConfirmation", percentageState, null)
+                        break
+                    case "IncrementPercentageRequest":                         
+						def deltaPercentage = event.payload.deltaPercentage.value
+						println "INFO: Handle IncrementPercentageRequest"
+						return doRequest(deviceId, "dim", messageId, "IncrementPercentageConfirmation", deltaPercentage, 'up')
+                        break 
+                    case "DecrementPercentageRequest":
+                         println "INFO: Handle DecrementPercentageRequest"
+						 return doRequest(deviceId, "dim", messageId, "DecrementPercentageConfirmation", deltaPercentage, 'down')
+                         break 
+                }		
 		}
 
 	}
@@ -43,27 +61,68 @@ public class Telldus{
 		return randomUUID() as String
 	}
 	
-	def doRequest(def id, def type, def messageId, def returnName) {
-		Map<String, String> params = new HashMap<>()
-		params.put("id", id)
+	def doHealthCheckRequest() {
+		def reply = [:]
+		reply['header'] = ["namespace": 'Alexa.ConnectedHome.System', "name": HealthCheckResponse, "messageId": messageId(), "payloadVersion": '2']
 		
-		println "INFO: id " + id
+		reply['payload'] = ["description": "The system is currently healthy","description": "The system is currently healthy"]
+		return reply 
+	}
+	
+	def makeError(def name, def namespace, def payload) {
+		def error = [:]
+		error['header'] = ["namespace": namespace, "name": name, "messageId": messageId(), "payloadVersion": '2']
+		
+		error['payload'] = [:]
+		
+		return error 
+	}
+	def getCurrentState(def id) {
+		def params = [:]
+		params.put("id", id)
+		OAuthRequest request = createAndSignRequest("device/info", params)
+		Response response = request.send()
+		JsonSlurper jsonSlurper = new JsonSlurper()
+        def json = new JsonSlurper().parseText(response.getBody())
+		
+		return json.statevalue
+	}
+	
+	def doRequest(def id, def type, def messageId, def returnName, def level, def dimType) {
+		def params = [:]
+		def reply = [:]
+		
+		params.put("id", id)
+		if (level) {
+			def valueLevel = level.toInteger() * 2.55
+			def currentValue= ''
+			if(dimType == 'up') {
+				currentValue = getCurrentState(id).toInteger() / 2.55
+				valueLevel = valueLevel + currentValue
+			} else if (dimType == 'down') {
+				currentValue = getCurrentState(id).toInteger() / 2.55
+				valueLevel = currentValue - valueLevel
+			}
+			
+			params.put("level", valueLevel.round())
+		}
 		OAuthRequest request = createAndSignRequest("device/" + type, params)
-		println "INFO: Sending request"
+		
+		println "INFO: Sending request for id: " + id
 		Response response = request.send()
 		
 		JsonSlurper jsonSlurper = new JsonSlurper()
         def json = new JsonSlurper().parseText(response.getBody())
-		def reply = [:]
+		
 		println "INFO: Telldus reply: " + json 
 		
 		if (json.status == 'success') {
 			reply['header'] = ["namespace": 'Alexa.ConnectedHome.Control', "name": returnName, "messageId": messageId, "payloadVersion": '2']
 		} else {
-			println "ERROR: Handle error?"
+			return makeError('TargetOfflineError','Alexa.ConnectedHome.Control')
 		}
 		
-			reply['payload'] = [:]
+		reply['payload'] = [:]
 		
 		println "INFO: Control reply " + reply 
 		return reply 
@@ -73,7 +132,7 @@ public class Telldus{
 	    def reply=[:]
 		println "INFO: getDevicesRequest"
 			
-		OAuthRequest request = createAndSignRequest("devices/list", null)
+		OAuthRequest request = createAndSignRequest("devices/list", ["supportedMethods":1023])
 		Response response = request.send()
         def json = new JsonSlurper().parseText(response.getBody())
 		
@@ -81,24 +140,29 @@ public class Telldus{
 			
 		def getAllDevices = []
 		json.device.each{ telldus->
+			 def actions = ''
+
+			 if (telldus."methods"==51) {
+				actions = ["incrementPercentage", "decrementPercentage", "setPercentage", "turnOn", "turnOff"]
+			 } else {
+				actions = ["turnOn", "turnOff"]
+			 }
+			 
 			 getAllDevices.add(["applianceId":telldus."id",
                     "manufacturerName":"Telldus",
-                    "modelName":"Unkown",
+                    "modelName":"Unknown",
                     "version":"1",
                     "friendlyName":telldus."name",
                     "friendlyDescription":"Telldus - " + telldus."name",
                     "isReachable":true,
-                    "actions":[
-                        "turnOn",
-                        "turnOff"
-                    ],
+                    "actions":actions,
                     "additionalApplianceDetails":[
-						 "extraDetail1":"optionalDetailForSkillAdapterToReferenceThisDevice"
+						 "methods":telldus."methods"
 						]
 					])	
 			
 				
-		} 
+		}
 		reply['payload'] = ["discoveredAppliances":getAllDevices]
 	
 		println "INFO: Device request reply: " + reply
@@ -144,12 +208,10 @@ public class Telldus{
 		// Create, sign and send request.
 		OAuthRequest request = new OAuthRequest(Verb.GET, telldusUrl(url))
 
-		if (parameters != null) {
-			for (String parameterName : parameters.keySet()) {
-				String parameterValue = parameters.get(parameterName)
-
-				request.addQuerystringParameter(parameterName, parameterValue)
-			}
+		if (parameters) {
+			parameters.each {key, value ->
+				request.addQuerystringParameter(key, value.toString())
+			}	
 		}
 
 		return request
