@@ -1,9 +1,9 @@
-# alexa-home-telldus 2016 - Telldus Alexa Home Skill 
-Integrates [Telldus Live](http://live.telldus.com/) with Alexa. 
+# Telldus Alexa Home Skill 
+Integrates [Telldus Live](http://live.telldus.com/) with Alexa as a Smart Home Skill. 
 
 ## Setup
 1. In the `Global.groovy` file, update it with the needed keys. See [Telldus documentation](https://api.telldus.com/keys/index) for more information 
-1. Run gradle/gradlew uberjar to build a deployable package of alexa-home-telldus. This will generate a `alexa-home-telldus-1.0.jar` file that you should upload to AWS Lamda
+1. Run gradle/gradlew uberjar to build a deployable package of alexa-home-telldus. This will generate a `alexa-home-telldus-1.0.jar` file that should be uploaded to AWS Lamda
 
 1. Create an Alexa skill and Lambda Function by following [these instructions](https://developer.amazon.com/public/solutions/alexa/alexa-skills-kit/docs/steps-to-create-a-smart-home-skill) (with the modifications noted below).
     * The name of the Alexa: Telldus-Alexa
