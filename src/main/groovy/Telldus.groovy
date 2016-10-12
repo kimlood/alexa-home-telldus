@@ -49,9 +49,10 @@ public class Telldus{
 						return doRequest(deviceId, "dim", messageId, "IncrementPercentageConfirmation", deltaPercentage, 'up')
                         break 
                     case "DecrementPercentageRequest":
-                         println "INFO: Handle DecrementPercentageRequest"
-						 return doRequest(deviceId, "dim", messageId, "DecrementPercentageConfirmation", deltaPercentage, 'down')
-                         break 
+                        def deltaPercentage = event.payload.deltaPercentage.value
+						println "INFO: Handle DecrementPercentageRequest"
+						return doRequest(deviceId, "dim", messageId, "DecrementPercentageConfirmation", deltaPercentage, 'down')
+                        break 
                 }		
 		}
 
@@ -65,7 +66,7 @@ public class Telldus{
 		def reply = [:]
 		reply['header'] = ["namespace": 'Alexa.ConnectedHome.System', "name": HealthCheckResponse, "messageId": messageId(), "payloadVersion": '2']
 		
-		reply['payload'] = ["description": "The system is currently healthy","description": "The system is currently healthy"]
+		reply['payload'] = ["description": "The system is currently healthy","isHealthy": true]
 		return reply 
 	}
 	
@@ -97,14 +98,21 @@ public class Telldus{
 			def valueLevel = level.toInteger() * 2.55
 			def currentValue= ''
 			if(dimType == 'up') {
-				currentValue = getCurrentState(id).toInteger() / 2.55
+				currentValue = getCurrentState(id).toInteger() 
 				valueLevel = valueLevel + currentValue
+				 
 			} else if (dimType == 'down') {
-				currentValue = getCurrentState(id).toInteger() / 2.55
+				currentValue = getCurrentState(id).toInteger() 
 				valueLevel = currentValue - valueLevel
+				
 			}
-			
-			params.put("level", valueLevel.round())
+			println "INFO: Dim value: " + valueLevel
+			if (valueLevel > 255) {
+				valueLevel = 255
+			} else if () valueLevel < 0 {
+				valueLevel = 0
+			}
+			params.put("level", valueLevel)
 		}
 		OAuthRequest request = createAndSignRequest("device/" + type, params)
 		
