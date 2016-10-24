@@ -109,7 +109,7 @@ public class Telldus{
 			println "INFO: Dim value: " + valueLevel
 			if (valueLevel > 255) {
 				valueLevel = 255
-			} else if () valueLevel < 0 {
+			} else if (valueLevel < 0 ){
 				valueLevel = 0
 			}
 			params.put("level", valueLevel)
