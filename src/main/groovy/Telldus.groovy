@@ -94,7 +94,7 @@ public class Telldus{
 		
 		params.put("id", id)
 		if (level) {
-			def valueLevel = Integer.parseInt(level.split("\\.")[0]) * 2.55
+			def valueLevel =  Integer.parseInt(String.valueOf(level).split("\\.")[0]) * 2.55
 			def currentValue= ''
 			if(dimType == 'up') {
 				currentValue = getCurrentState(id).toInteger() 
@@ -117,6 +117,7 @@ public class Telldus{
 		
 		println "INFO: Sending request for id: " + id
 		Response response = request.send()
+		println "INFO: Response: " + response 
 		
 		JsonSlurper jsonSlurper = new JsonSlurper()
         def json = new JsonSlurper().parseText(response.getBody())
@@ -217,7 +218,7 @@ public class Telldus{
 
 		if (parameters) {
 			parameters.each {key, value ->
-				
+				println "INFO: createRequest Parms key: " + key + " and value: " + value 
 				request.addQuerystringParameter(key, value.toString())
 			}	
 		}
