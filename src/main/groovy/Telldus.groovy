@@ -12,9 +12,6 @@ public class Telldus{
 	public static void main(String[] args) {
 		def telldus = new Telldus()
 		telldus.handler([header:[namespace:'Alexa.ConnectedHome.Control', name:'IncrementPercentageRequest', payloadVersion:'2', messageId:'1c1ddeee-2484-4a05-987a-82d7b5dca83a'], payload:[accessToken:'Atza|IwEBIB108wArXGKiQ3gvpGCm8jZr9GZxor5C0JKFtw8k80Ry1GNItkWnlSgHEWoNEx3TNHUh1JX_0UjrQEo5FIaWbIiCZdoPy_tEh1_k14PAtAueDHP33PeCYfi759bmRlaJGWPHg0WSfYdrfsUbsQ_ICg3utcrjhUMyResDwCX5xq1K_IKoSSN52dCjnDjQDfZL450uenX3tuQvRY0pxCpK6g9U2KtE4h3htoEm53mkzJzHvg-obtHxJR7wBikWQa918tXhRr1PTcVk2hrMIgPVhTHcbCI9B2vliPpot3nc1D_3BzVGq4-cZ1byKPmkYCZJjfb01EQyzSPA1TcNhvB1LbOskOIY-H3JkWdd7oe5N9AH3q--KnTjr7hemdIsDO9aRdCv05YJhvJMid903ZRO5tNXix-JwKTlSu4d3koYKejWje_AciglWm36nOqM9p3WX3fZIV_Sa_B-ehKNdyC3SYDalfFa3d11RUE-PV5bvvwZppvr9Ydg_P4W_BqBYraFS_g', appliance:[applianceId:'1068213', additionalApplianceDetails:[methods:'51']], percentageState:[value:'10.0'], deltaPercentage:[value:'10.0']]], null)
-		
-		
-		
 	}
 	def handler(def event, Context context){
 		println "INFO: " + event 
@@ -97,7 +94,7 @@ public class Telldus{
 		
 		params.put("id", id)
 		if (level) {
-			def valueLevel = Integer.parseInt(String.valueOf(level).split("\\.")[0]) * 2.55
+			def valueLevel = Integer.parseInt(level.split("\\.")[0]) * 2.55
 			def currentValue= ''
 			if(dimType == 'up') {
 				currentValue = getCurrentState(id).toInteger() 
@@ -220,7 +217,7 @@ public class Telldus{
 
 		if (parameters) {
 			parameters.each {key, value ->
-				println "INFO: Key parameter: " + key + " value parameter: " + value 
+				
 				request.addQuerystringParameter(key, value.toString())
 			}	
 		}
