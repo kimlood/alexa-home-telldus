@@ -97,11 +97,11 @@ public class Telldus{
 			def valueLevel =  Integer.parseInt(String.valueOf(level).split("\\.")[0]) * 2.55
 			def currentValue= ''
 			if(dimType == 'up') {
-				currentValue = getCurrentState(id).toInteger() 
+				currentValue = getCurrentState(id).toInteger()
 				valueLevel = valueLevel + currentValue
 				 
 			} else if (dimType == 'down') {
-				currentValue = getCurrentState(id).toInteger() 
+				currentValue = getCurrentState(id).toInteger()
 				valueLevel = currentValue - valueLevel
 				
 			}
@@ -150,7 +150,7 @@ public class Telldus{
 		json.device.each{ telldus->
 			 def actions = ''
 
-			 if (telldus."methods"==51) {
+			 if (telldus."methods"==51 || telldus."methods"==19) {
 				actions = ["incrementPercentage", "decrementPercentage", "setPercentage", "turnOn", "turnOff"]
 			 } else {
 				actions = ["turnOn", "turnOff"]
