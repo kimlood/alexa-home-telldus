@@ -150,7 +150,7 @@ public class Telldus{
 		json.device.each{ telldus->
 			 def actions = ''
 
-			 if (telldus."methods"==51 || telldus."methods"==19) {
+			 if (telldus."methods"==51 || telldus."methods"==19 || telldus."methods"==3) {
 				actions = ["incrementPercentage", "decrementPercentage", "setPercentage", "turnOn", "turnOff"]
 			 } else {
 				actions = ["turnOn", "turnOff"]
