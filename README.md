@@ -1,5 +1,5 @@
-# This is no longer maintained, since Telldus has released it's on Alexa app.
-https://www.amazon.com/Telldus-Technologies/dp/B075Z5DJGV
+# This is no longer maintained, since Telldus has released it's own Alexa app.
+See: https://www.amazon.com/Telldus-Technologies/dp/B075Z5DJGV
 
 # Telldus Alexa Home Skill 
 Integrates [Telldus Live](http://live.telldus.com/) with Alexa as a Smart Home Skill. 
